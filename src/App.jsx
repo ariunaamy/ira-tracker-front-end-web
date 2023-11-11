@@ -1,4 +1,56 @@
+import axios from "axios";
+import { useState, useEffect } from "react";
+
+
+
+
 function App() {
+  const [searchResult, setSearchResult] = useState([]);
+
+  const fetchData = async () => {
+    try {
+        const payload = {
+          "filters": {
+              "keywords": ["Inflation Reduction Act"],
+              "award_type_codes": [
+                  "A",
+                  "B",
+                  "C",
+                  "D"
+              ]
+          },
+          "fields": [
+              "Award ID",
+              "Mod",
+              "Recipient Name",
+              "Action Date",
+              "Transaction Amount",
+              "Awarding Agency",
+              "Awarding Sub Agency",
+              "Award Type"
+          ],
+          "page": 1,
+          "limit": 5,
+          "sort": "Transaction Amount",
+          "order": "desc"
+      }
+  
+      const response = await axios.post('https://api.usaspending.gov/api/v2/search/spending_by_transaction/', payload);
+      setSearchResult(response.data.results);
+  
+    } catch (error) {
+      if (error.response) {
+        console.error(error.response.data);
+        console.error(error.response.status);
+        console.error(error.response.headers);
+      } else if (error.request) {
+        console.error(error.request);
+      } else {
+        console.error('Error', error.message);
+      }
+    }
+  };
+  
   function createCards() {
     const dummyData = [
       {
@@ -17,7 +69,7 @@ function App() {
         subtitle: "Subtitle 3",
       },
     ];
-
+  
     return dummyData.map((data, index) => (
       <div key={`card-${index}`} className="border w-1/3 bg-slate-100 p-12">
         <h1 className="font-bold text-md w-fit py-5 text-[#f05875]">{data.title}</h1>
@@ -27,10 +79,15 @@ function App() {
     ));
   }
 
+  useEffect(()=>{
+    fetchData(); 
+  } ,[])
+
   const cards = createCards();
+  console.log(searchResult)
 
   return (
-    <div className="bg-gradient-to-r from-[#0369ed] via-[#ffe0e0] to-[#dfffbc] h-64 ">
+    <div className="bg-gradient-to-r from-[#0369ed] via-[#a8d3ff] to-[#dfffbc] h-64 ">
       <div className="flex justify-between">
         <div id="logo" className="py-1 place-content-center my-10">
           <h1 className=" text-white text-left text-base font-bold py-1 px-12">
@@ -44,8 +101,8 @@ function App() {
             Tracker
           </h1>
         </div>
-        <button className="h-10 m-3 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-bold py-0 px-3 rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
-          buy me a coffee
+        <button id="donate" className="h-10 m-3 my-6 px-4 py-0 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-bold  rounded-full shadow-lg hover:shadow-xl transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500">
+          donate
         </button>
       </div>
 
@@ -61,9 +118,18 @@ function App() {
                 <h1>SEARCH</h1>
               </button>
             </div>
+            <div id="search-result">
+              {searchResult.map(item => 
+                <div key={item["Award ID"]}>
+                  <h1>
+                    {item["Recipient Name"]}
+                  </h1>
+                </div>)}
+              <h2></h2>
+            </div>
           </div>
         </div>
-        <div id="cards" className="grid grid-rows-1">
+        <div id="cards" className="grid grid-rows-1 w-1/2">
           {cards}
         </div>
       </div>
